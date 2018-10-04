@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "fitna",
-    version = "0.0.1",
+    version = "0.0.2",
     author = "Dmitri Smirnov",
     author_email = "dmixsmi@gmail.com",
     description = "Data fitting algorithms",
