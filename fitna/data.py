@@ -20,6 +20,11 @@ class NormalDist:
                " }\n"
 
 
+    def rvs(self):
+        ''' Generates random sample for the mixture '''
+        return self.norm * scipy.stats.multivariate_normal.rvs(self.mean, self.cov, self.size).T
+
+
 class NormalMixture:
 
     def __init__(self, normal_dists):
