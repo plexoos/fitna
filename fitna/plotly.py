@@ -50,7 +50,7 @@ def make_trace_from_cov(cov, mean_x=0, mean_y=0):
 
 
 def make_traces_from_NormalDists(estimates):
-
+    estimates = [estimates] if not isinstance(estimates, list) else estimates
     return [make_trace_from_cov(e.cov, e.mean[0], e.mean[1]) for e in estimates]
 
 
