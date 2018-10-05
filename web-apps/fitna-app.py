@@ -1,3 +1,4 @@
+import json
 import random
 import dash
 import dash_core_components as dcc
@@ -55,7 +56,7 @@ app.layout = html.Div([
     html.Div(
         id='slider-div',
         style={'width': '90%', 'margin': 'auto'},
-        children=[dcc.Slider(id='slider-steps', value=0)]
+        children=[dcc.Slider(id='slider-steps', value=0, disabled=True)]
     ),
 
     html.Div(
@@ -67,8 +68,10 @@ app.layout = html.Div([
                 options=dropdown_dataset_options,
                 value=[],
                 multi=True ),
-            html.Button('Run', id='button-do-em', n_clicks=0) ]
-    )
+            html.Button('Run', id='button-run-em', n_clicks=0) ]
+    ),
+
+    html.Div(id='div-cached-optimization-steps', style={'display': 'none'})
 ])
 
 
@@ -82,12 +85,24 @@ def run_optimization(dataset_names):
     return all_estimates
 
 
-def update_figure(dataset_names, optimization_step):
+
+@app.callback(
+    dash.dependencies.Output('graph-out', 'figure'),
+    [dash.dependencies.Input('slider-steps', 'value')],
+    [dash.dependencies.State('div-cached-optimization-steps', 'children'),
+     dash.dependencies.State('dropdown-datasets', 'value')])
+def select_datasets(optimization_step, cached_steps, dataset_names):
+
     data = fitna.plotly.make_traces_from_dict(normal_mixture.datasets, dataset_names)
 
-    if optimization_step > 0:
-        err_traces = fitna.plotly.make_traces_from_NormalDists(g_all_estimates[optimization_step-1])
-        data.extend(err_traces)
+    if cached_steps == None:
+        return { 'data': data, 'layout': fig_layout }
+
+    cached_step = next((step for step in cached_steps if step['props']['id'] == 'step_{}'.format(optimization_step)), {})
+    #print(cached_step)
+
+    if cached_step:
+        data.extend(json.loads(cached_step['props']['children']))
 
     return {
         'data': data,
@@ -95,30 +110,50 @@ def update_figure(dataset_names, optimization_step):
     }
 
 
-@app.callback(
-    dash.dependencies.Output('graph-out', 'figure'),
-    [dash.dependencies.Input('dropdown-datasets', 'value'),
-     dash.dependencies.Input('slider-steps', 'value')])
-def select_datasets(dataset_names, optimization_step):
-    return update_figure(dataset_names, optimization_step)
-
 
 @app.callback(
     dash.dependencies.Output('slider-div', 'children'),
-    [dash.dependencies.Input('button-do-em', 'n_clicks')],
+    [dash.dependencies.Input('div-cached-optimization-steps', 'children')])
+def select_datasets(div_children):
+    if not div_children:
+        return [dcc.Slider(id='slider-steps', value=0, disabled=True)]
+    else:
+        slider = dcc.Slider(
+                     id='slider-steps',
+                     min=0,
+                     max=len(div_children),
+                     step=1,
+                     value=0,
+                     disabled=False,
+                     marks={i: 'step {}'.format(i) for i in range(0, len(div_children) + 1)} )
+        return [slider]
+
+
+
+@app.callback(
+    dash.dependencies.Output('div-cached-optimization-steps', 'children'),
+    [dash.dependencies.Input('button-run-em', 'n_clicks')],
     [dash.dependencies.State('dropdown-datasets', 'value')])
 def select_datasets(n_clicks, dataset_names):
-    global g_all_estimates
-    g_all_estimates = run_optimization(dataset_names) if len(dataset_names) else []
-    slider = dcc.Slider(
-                 id='slider-steps',
-                 min=0,
-                 max=len(g_all_estimates),
-                 step=1,
-                 value=0,
-                 disabled=False,
-                 marks={i: 'step {}'.format(i) for i in range(0, len(g_all_estimates) + 1)} )
-    return [slider]
+
+    all_estimates = run_optimization(dataset_names) if len(dataset_names) else []
+    div_cached_optimization_steps = []
+
+    for index, estimate in enumerate(all_estimates, start=1):
+
+        traces = fitna.plotly.make_traces_from_NormalDists(estimate)
+        traces_as_json = list(map(lambda tr: tr.to_plotly_json(), traces))
+
+        #pre1 = html.Pre('id: step_{}'.format(index))
+        #pre2 = html.Pre('{}'.format(traces_as_json))
+
+        #div = html.Div(id='step_'.format(index), children=[pre1, pre2])
+        div = html.Div(id='step_{}'.format(index), children='{}'.format(traces_as_json))
+        div = html.Div(id='step_{}'.format(index), children=json.dumps(traces_as_json))
+        div_cached_optimization_steps.append(div)
+
+    return div_cached_optimization_steps
+
 
 
 if __name__ == '__main__':
