@@ -76,8 +76,8 @@ def make_trace_ellipse(xc=0, yc=0, a=1, b=1, alpha=0):
     y = yc + a * np.cos(t) * np.sin(alpha) + b * np.sin(t) * np.cos(alpha)
 
     trace = plotly.graph_objs.Scatter(
-        x=x,
-        y=y,
+        x=x.tolist(),
+        y=y.tolist(),
         mode='lines',
         hoverinfo='none'
     )
