@@ -1,14 +1,32 @@
 import copy
 import numpy as np
 import scipy.stats
+import fitna
 
 
-def do_em(data, initial_estimates, tol=1e-6, max_iter=10):
-    # Copy initial estimates to a local list
-    # The local list may change size in the future
-    components = copy.deepcopy(initial_estimates)
+def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
+
+    components = []
+
+    if initial_estimates is None:
+        data_cov = np.cov(data.T)
+        data_mean = np.mean(data.T, axis=1)
+
+        max_eigen = np.amax(data_cov.diagonal())
+        data_cov = np.diag(np.diag(data_cov))
+        np.fill_diagonal(data_cov, max_eigen)
+
+        estimate = fitna.data.NormalDist(norm=1, mean=data_mean, cov=data_cov )
+        components.append(estimate)
+    else:
+        # Copy initial estimates to a local list
+        # The local list may change size in the future
+        components = copy.deepcopy(initial_estimates)
 
     all_estimates = []
+    # Add initial estimates
+    all_estimates.append(copy.deepcopy(components))
+
 
     n_points, n_dims = data.shape
     n_components = len(components)
