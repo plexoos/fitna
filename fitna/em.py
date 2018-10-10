@@ -27,6 +27,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
     # Add initial estimates
     all_estimates.append(copy.deepcopy(components))
 
+    all_memb_probs = []
 
     n_points, n_dims = data.shape
     n_components = len(components)
@@ -83,6 +84,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
         ll_frac_delta = np.abs( (ll_new - ll_old)/ll_new )
 
         all_estimates.append(copy.deepcopy(components))
+        all_memb_probs.append(memb_probs)
 
         if ll_old != 0 and ll_frac_delta < tol:
             print('tolerance reached')
@@ -90,4 +92,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
 
         ll_old = ll_new
 
-    return ll_new, all_estimates
+    # Add a dummy entry
+    all_memb_probs.append(all_memb_probs[-1])
+
+    return ll_new, all_estimates, all_memb_probs
