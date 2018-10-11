@@ -40,6 +40,41 @@ def make_traces_from_dict(data_points, dataset_names=[]):
     return traces
 
 
+
+def make_traces_combo(datasets, dataset_names=[], cached_step_memb_prob=[]):
+    '''
+    Accepts datasets dictionary indexed by name
+    '''
+
+    selected_samples = [datasets[name] for name in dataset_names]
+    if not selected_samples:
+        return []
+
+    traces = []
+    index = 0
+    data_combo = np.concatenate(selected_samples, 1)
+    colorscale = plotly.colors.make_colorscale(['#cccccc', plotly.colors.DEFAULT_PLOTLY_COLORS[index+1]])
+
+    trace = plotly.graph_objs.Scatter(
+        x=data_combo[0],
+        y=data_combo[1],
+        mode='markers',
+        hoverinfo='none',
+        marker=dict(
+            cmin=0,
+            cmax=1,
+            color=cached_step_memb_prob[index],
+            colorbar=dict( title='Colorbar'),
+            colorscale=colorscale
+        )
+    )
+
+    traces.append(trace)
+
+    return traces
+
+
+
 def make_trace_from_cov(cov, mean_x=0, mean_y=0):
 
     w, v = scipy.linalg.eigh(cov)
