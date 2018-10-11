@@ -43,13 +43,16 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
         # For each data point calculate membership/assignment probabilities
         # associated with each current cluster
         memb_probs = np.zeros((n_components, n_points))
+        memb_probs_indep = np.zeros((n_components, n_points))
 
         for ic, component in enumerate(components):
             for ip in range(n_points):
                 memb_probs[ic, ip] = component.norm * scipy.stats.multivariate_normal(component.mean, component.cov).pdf(data[ip])
+            component_max_prob = np.amax(memb_probs[ic,:])
+            memb_probs_indep[ic, :] = memb_probs[ic, :] / component_max_prob
 
-        # Normalize the weight of each data point to 1
-        memb_probs /= memb_probs.sum(0)
+        memb_probs = memb_probs / memb_probs.sum(0)
+
 
         # M-step
         # For each cluster calculate new norms given the probabilities
@@ -85,7 +88,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
         ll_frac_delta = np.abs( (ll_new - ll_old)/ll_new )
 
         all_estimates.append(copy.deepcopy(components))
-        all_memb_probs.append(memb_probs)
+        all_memb_probs.append(memb_probs_indep)
 
         if ll_old != 0 and ll_frac_delta < tol:
             print('break: Tolerance reached')
