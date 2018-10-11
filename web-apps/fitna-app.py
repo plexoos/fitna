@@ -88,9 +88,9 @@ def run_optimization(dataset_names):
 
 @app.callback(
     dash.dependencies.Output('graph-out', 'figure'),
-    [dash.dependencies.Input('slider-steps', 'value')],
-    [dash.dependencies.State('div-cached-optimization-steps', 'children'),
-     dash.dependencies.State('dropdown-datasets', 'value')])
+    [dash.dependencies.Input('slider-steps', 'value'),
+     dash.dependencies.Input('dropdown-datasets', 'value')],
+    [dash.dependencies.State('div-cached-optimization-steps', 'children')])
 def select_slider_step(optimization_step, dataset_names, cached_steps):
 
     if cached_steps == None:
