@@ -91,7 +91,7 @@ def run_optimization(dataset_names):
     [dash.dependencies.Input('slider-steps', 'value')],
     [dash.dependencies.State('div-cached-optimization-steps', 'children'),
      dash.dependencies.State('dropdown-datasets', 'value')])
-def select_datasets(optimization_step, cached_steps, dataset_names):
+def select_slider_step(optimization_step, dataset_names, cached_steps):
 
     data = fitna.plotly.make_traces_from_dict(normal_mixture.datasets, dataset_names)
 
@@ -114,7 +114,7 @@ def select_datasets(optimization_step, cached_steps, dataset_names):
 @app.callback(
     dash.dependencies.Output('slider-div', 'children'),
     [dash.dependencies.Input('div-cached-optimization-steps', 'children')])
-def select_datasets(div_children):
+def update_slider(div_children):
     if not div_children:
         return [dcc.Slider(id='slider-steps', value=0, disabled=True)]
     else:
@@ -134,7 +134,7 @@ def select_datasets(div_children):
     dash.dependencies.Output('div-cached-optimization-steps', 'children'),
     [dash.dependencies.Input('button-run-em', 'n_clicks')],
     [dash.dependencies.State('dropdown-datasets', 'value')])
-def select_datasets(n_clicks, dataset_names):
+def request_run_optimization(n_clicks, dataset_names):
 
     all_estimates = run_optimization(dataset_names) if len(dataset_names) else []
     div_cached_optimization_steps = []
