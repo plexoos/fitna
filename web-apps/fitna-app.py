@@ -80,9 +80,9 @@ def run_optimization(dataset_names):
     # Filter datasets based on dataset_names
     selected_samples = [normal_mixture.datasets[name] for name in dataset_names]
     data_points_T = np.concatenate(selected_samples, 1).T
-    dummy_ll_new, all_estimates = fitna.em.do_em(data_points_T, initial_estimates, 1e-6, 50)
+    dummy_ll_new, all_estimates, all_memb_probs = fitna.em.do_em(data_points_T, initial_estimates, 1e-6, 50)
 
-    return all_estimates
+    return all_estimates, all_memb_probs
 
 
 
@@ -93,13 +93,14 @@ def run_optimization(dataset_names):
      dash.dependencies.State('dropdown-datasets', 'value')])
 def select_slider_step(optimization_step, dataset_names, cached_steps):
 
-    data = fitna.plotly.make_traces_from_dict(normal_mixture.datasets, dataset_names)
-
     if cached_steps == None:
-        return { 'data': data, 'layout': fig_layout }
+        return { 'data': [], 'layout': fig_layout }
 
     cached_step = next((step for step in cached_steps if step['props']['id'] == 'step_{}'.format(optimization_step)), {})
     #print(cached_step)
+    cached_step_memb_prob = next((step for step in cached_steps if step['props']['id'] == 'step_{}_memb_probs'.format(optimization_step)), {})
+
+    data = fitna.plotly.make_traces_combo(normal_mixture.datasets, dataset_names, json.loads(cached_step_memb_prob['props']['children']) if cached_step_memb_prob else [])
 
     if cached_step:
         data.extend(json.loads(cached_step['props']['children']))
@@ -121,11 +122,11 @@ def update_slider(div_children):
         slider = dcc.Slider(
                      id='slider-steps',
                      min=0,
-                     max=len(div_children),
+                     max=len(div_children)/2 - 1,
                      step=1,
                      value=0,
                      disabled=False,
-                     marks={i: 'step {}'.format(i) for i in range(0, len(div_children) + 1)} )
+                     marks={i: 'step {}'.format(i) for i in range(0, int(len(div_children)/2))} )
         return [slider]
 
 
@@ -136,10 +137,11 @@ def update_slider(div_children):
     [dash.dependencies.State('dropdown-datasets', 'value')])
 def request_run_optimization(n_clicks, dataset_names):
 
-    all_estimates = run_optimization(dataset_names) if len(dataset_names) else []
+    all_estimates, all_memb_probs = run_optimization(dataset_names) if len(dataset_names) else ([], [])
+
     div_cached_optimization_steps = []
 
-    for index, estimate in enumerate(all_estimates, start=1):
+    for index, estimate in enumerate(all_estimates):
 
         traces = fitna.plotly.make_traces_from_NormalDists(estimate)
         traces_as_json = list(map(lambda tr: tr.to_plotly_json(), traces))
@@ -150,6 +152,9 @@ def request_run_optimization(n_clicks, dataset_names):
         #div = html.Div(id='step_'.format(index), children=[pre1, pre2])
         div = html.Div(id='step_{}'.format(index), children='{}'.format(traces_as_json))
         div = html.Div(id='step_{}'.format(index), children=json.dumps(traces_as_json))
+        div_cached_optimization_steps.append(div)
+
+        div = html.Div(id='step_{}_memb_probs'.format(index), children=json.dumps(all_memb_probs[index].tolist()))
         div_cached_optimization_steps.append(div)
 
     return div_cached_optimization_steps
