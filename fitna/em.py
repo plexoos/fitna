@@ -4,7 +4,7 @@ import scipy.stats
 import fitna
 
 
-def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
+def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
     components = []
 
@@ -13,10 +13,11 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
         data_mean = np.mean(data.T, axis=1)
 
         max_eigen = np.amax(data_cov.diagonal())
+        # Extract and construct a diagonal array from data_cov
         data_cov = np.diag(np.diag(data_cov))
         np.fill_diagonal(data_cov, max_eigen)
 
-        estimate = fitna.data.NormalDist(norm=1, mean=data_mean, cov=data_cov )
+        estimate = fitna.data.NormalDist(norm=1, mean=data_mean, cov=data_cov)
         components.append(estimate)
     else:
         # Copy initial estimates to a local list
@@ -65,7 +66,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
                 component.mean += memb_probs[ic, ip] * data[ip]
             component.mean /= memb_probs[ic, :].sum()
 
-        # For each cluster calculate new covars given the probabilities
+        # For each cluster calculate new (weighted) covariances given the probabilities
         for ic, component in enumerate(components):
             component.cov[:] = 0
             for ip in range(n_points):
@@ -87,7 +88,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=10):
         all_memb_probs.append(memb_probs)
 
         if ll_old != 0 and ll_frac_delta < tol:
-            print('tolerance reached')
+            print('break: Tolerance reached')
             break
 
         ll_old = ll_new

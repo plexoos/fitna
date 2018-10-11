@@ -20,11 +20,11 @@ def make_traces_from_arrays(data_points):
     return traces
 
 
-def make_traces_from_dict(data_points, dataset_names=[]):
+def make_traces_from_dict(datasets, dataset_names=[]):
 
     traces = []
 
-    for name, point_set in data_points.items():
+    for name, point_set in datasets.items():
         if name not in dataset_names:
             continue
 

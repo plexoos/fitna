@@ -18,9 +18,8 @@ normal_params = [
 ]
 
 normal_mixture = fitna.data.NormalMixture(normal_params)
-data_points = normal_mixture.rvs()
-
-g_all_estimates = []
+# Generate random samples for the provided distributions
+normal_mixture.rvs()
 
 # Initialize global variables to refer to list of normal_params with predefined datasets
 dropdown_dataset_options = []
@@ -146,11 +145,6 @@ def request_run_optimization(n_clicks, dataset_names):
         traces = fitna.plotly.make_traces_from_NormalDists(estimate)
         traces_as_json = list(map(lambda tr: tr.to_plotly_json(), traces))
 
-        #pre1 = html.Pre('id: step_{}'.format(index))
-        #pre2 = html.Pre('{}'.format(traces_as_json))
-
-        #div = html.Div(id='step_'.format(index), children=[pre1, pre2])
-        div = html.Div(id='step_{}'.format(index), children='{}'.format(traces_as_json))
         div = html.Div(id='step_{}'.format(index), children=json.dumps(traces_as_json))
         div_cached_optimization_steps.append(div)
 
