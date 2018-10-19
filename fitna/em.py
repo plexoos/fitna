@@ -8,7 +8,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
     components = []
 
-    if initial_estimates is None:
+    if not initial_estimates:
         data_cov = np.cov(data.T)
         data_mean = np.mean(data.T, axis=1)
 
