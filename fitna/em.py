@@ -24,14 +24,12 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
         # The local list may change size in the future
         components = copy.deepcopy(initial_estimates)
 
-    all_estimates = []
-    # Add initial estimates
-    all_estimates.append(copy.deepcopy(components))
-
-    all_memb_probs = []
-
     n_points, n_dims = data.shape
     n_components = len(components)
+
+    # Add initial estimates
+    all_estimates  = [copy.deepcopy(components)]
+    all_memb_probs = [np.ones((n_components, n_points))]
 
     ll_old = 0
     ll_new = 0
@@ -96,7 +94,5 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
         ll_old = ll_new
 
-    # Add a dummy entry
-    all_memb_probs.append(all_memb_probs[-1])
 
     return ll_new, all_estimates, all_memb_probs
