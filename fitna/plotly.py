@@ -65,7 +65,7 @@ def make_traces_combo(datasets, cluster_index=0, dataset_names=[], cached_step_m
             color=cached_step_memb_prob[cluster_index],
             colorbar=dict( title='Colorbar'),
             colorscale=colorscale
-        )
+        ) if cached_step_memb_prob else {}
     )
 
     traces.append(trace)
