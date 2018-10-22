@@ -41,7 +41,7 @@ def make_traces_from_dict(datasets, dataset_names=[]):
 
 
 
-def make_traces_combo(datasets, dataset_names=[], cached_step_memb_prob=[]):
+def make_traces_combo(datasets, cluster_index=0, dataset_names=[], cached_step_memb_prob=[]):
     '''
     Accepts datasets dictionary indexed by name
     '''
@@ -51,9 +51,8 @@ def make_traces_combo(datasets, dataset_names=[], cached_step_memb_prob=[]):
         return []
 
     traces = []
-    index = 0
     data_combo = np.concatenate(selected_samples, 1)
-    colorscale = plotly.colors.make_colorscale(['#cccccc', plotly.colors.DEFAULT_PLOTLY_COLORS[index+1]])
+    colorscale = plotly.colors.make_colorscale(['#dddddd', plotly.colors.DEFAULT_PLOTLY_COLORS[cluster_index+1]])
 
     trace = plotly.graph_objs.Scatter(
         x=data_combo[0],
@@ -63,7 +62,7 @@ def make_traces_combo(datasets, dataset_names=[], cached_step_memb_prob=[]):
         marker=dict(
             cmin=0,
             cmax=1,
-            color=cached_step_memb_prob[index],
+            color=cached_step_memb_prob[cluster_index],
             colorbar=dict( title='Colorbar'),
             colorscale=colorscale
         )
