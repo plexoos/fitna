@@ -96,3 +96,25 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
 
     return ll_new, all_estimates, all_memb_probs
+
+
+
+def select_weakest(data, memb_probs_indep):
+    """
+    memb_probs_indep[ith_cluster, jth_data_point]
+
+    Assume array contains at least two data points
+    """
+
+    mean_probs = np.array(list(map(np.mean, memb_probs_indep.T)))
+
+    n_weakest = max( int(0.10 * len(memb_probs_indep[0])), 2)
+    indices = np.argpartition(mean_probs, n_weakest)[:n_weakest]
+
+    # Calculate distance between each data point pair
+    dists = [ (np.linalg.norm(data[i] - data[j]), i, j) for ii, i in enumerate(indices) for jj, j in enumerate(indices) if jj > ii ]
+    min_dist = min(dists, key=lambda tuple: tuple[0])
+
+    weakest_indices = np.array([min_dist[1], min_dist[2]])
+
+    return weakest_indices
