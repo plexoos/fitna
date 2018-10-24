@@ -118,3 +118,33 @@ def select_weakest(data, memb_probs_indep):
     weakest_indices = np.array([min_dist[1], min_dist[2]])
 
     return weakest_indices
+
+
+
+def create_cluster(data, components, memb_probs_indep):
+
+    weakest_indices = select_weakest(data, memb_probs_indep)
+
+    weak_data = data[weakest_indices]
+
+    weak_data_cov = np.cov(weak_data.T)
+    weak_data_mean = np.mean(weak_data.T, axis=1)
+
+    weak_max_eigen = np.amax(weak_data_cov.diagonal())
+    weak_data_cov = np.diag(np.diag(weak_data_cov))
+    np.fill_diagonal(weak_data_cov, max(weak_max_eigen, 1))
+
+    estimate = None
+    n_sigmas = []
+    
+    # Check statistical consistency with currently existing models
+    for component in components:
+        component_max_eigen = np.amax(component.cov.diagonal())
+
+        dist = np.linalg.norm(weak_data_mean - component.mean)
+        n_sigmas.append( dist/np.sqrt(component_max_eigen + weak_max_eigen) )
+
+    if all(sigma > 2.2 for sigma in n_sigmas):
+        estimate = fitna.data.NormalDist(norm=1, mean=weak_data_mean, cov=weak_data_cov)
+
+    return estimate, weakest_indices
