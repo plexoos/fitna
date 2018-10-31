@@ -30,6 +30,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
     # Add initial estimates
     all_estimates  = [copy.deepcopy(components)]
     all_memb_probs = [np.ones((n_components, n_points))]
+    all_weakest_points = [np.empty(0)]
 
     ll_old = 0
     ll_new = 0
@@ -51,6 +52,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
         memb_probs = memb_probs / memb_probs.sum(0)
 
+        new_component, weakest_indices = create_cluster(data, components, memb_probs_indep)
 
         # M-step
         # For each cluster calculate new norms given the probabilities
@@ -87,6 +89,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
 
         all_estimates.append(copy.deepcopy(components))
         all_memb_probs.append(memb_probs_indep)
+        all_weakest_points.append(weakest_indices)
 
         if ll_old != 0 and ll_frac_delta < tol:
             print('break: Tolerance reached')
@@ -95,7 +98,7 @@ def do_em(data, initial_estimates=None, tol=1e-6, max_iter=50):
         ll_old = ll_new
 
 
-    return ll_new, all_estimates, all_memb_probs
+    return all_estimates, all_memb_probs, all_weakest_points
 
 
 
